@@ -11,6 +11,7 @@ import os
 from operator import itemgetter
 
 from collections import defaultdict
+import csv
 
 random.seed(0)
 
@@ -44,22 +45,43 @@ class UserBasedCF(object):
         fp.close()
         print ('load %s succ' % filename, file=sys.stderr)
 
-    def generate_dataset(self, filename, pivot=0.7):
+    def generate_dataset(self, filename, pivot=0.7,dataset='douban'):
         ''' load rating data and split it to training set and test set '''
         trainset_len = 0
         testset_len = 0
 
-        for line in self.loadfile(filename):
-            user, movie, rating, _ = line.split('::')
-            # split the data by pivot
-            if random.random() < pivot:
-                self.trainset.setdefault(user, {})
-                self.trainset[user][movie] = int(rating)
-                trainset_len += 1
+        with open(filename,'r',encoding='utf-8') as f:
+            if dataset=='douban':
+                reader = csv.reader(f, skipinitialspace=True)
+                reader.__next__() # Skip first line
+                for paramList in reader:
+                    #评分,用户名,评论时间,用户ID,电影名,类型
+                    rating, user, time, userId, movie, genre = paramList
+                    # split the data by pivot
+                    if random.random() < pivot:
+                        self.trainset.setdefault(user, {})
+                        self.trainset[user][movie] = int(rating)
+                        trainset_len += 1
+                    else:
+                        self.testset.setdefault(user, {})
+                        self.testset[user][movie] = int(rating)
+                        testset_len += 1                    
+            elif dataset=='movielens':
+                for line in self.loadfile(filename):
+                    user, movie, rating, _ = line.split('::')
+                    # split the data by pivot
+                    if random.random() < pivot:
+                        self.trainset.setdefault(user, {})
+                        self.trainset[user][movie] = int(rating)
+                        trainset_len += 1
+                    else:
+                        self.testset.setdefault(user, {})
+                        self.testset[user][movie] = int(rating)
+                        testset_len += 1            
             else:
-                self.testset.setdefault(user, {})
-                self.testset[user][movie] = int(rating)
-                testset_len += 1
+                pass
+
+
 
         print ('split training set and test set succ', file=sys.stderr)
         print ('train set = %s' % trainset_len, file=sys.stderr)
@@ -177,6 +199,11 @@ class UserBasedCF(object):
 if __name__ == '__main__':
     ratingfile = os.path.join('ml-1m', 'ratings.dat')
     usercf = UserBasedCF()
-    usercf.generate_dataset(ratingfile)
+    usercf.generate_dataset('user.csv',dataset='douban')
     usercf.calc_user_sim()
     usercf.evaluate()
+
+    usercfm = UserBasedCF()
+    usercfm.generate_dataset(ratingfile,dataset='movielens')
+    usercfm.calc_user_sim()
+    usercfm.evaluate()
