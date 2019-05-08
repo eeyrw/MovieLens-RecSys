@@ -1,15 +1,8 @@
-#-*- coding: utf-8 -*-
-'''
-Created on 2015-06-22
-
-@author: Lockvictor
-'''
 import sys
 import random
 import math
 import os
 from operator import itemgetter
-
 from collections import defaultdict
 import csv
 
@@ -82,11 +75,13 @@ class UserBasedCF(object):
                 pass
 
 
+        user_num=len(self.testset)+len(self.trainset)
 
         print ('split training set and test set succ', file=sys.stderr)
         print ('train set = %s' % trainset_len, file=sys.stderr)
         print ('test set = %s' % testset_len, file=sys.stderr)
-
+        print ('user number = %s' % user_num, file=sys.stderr)
+        print ('data number = %s' % (trainset_len+testset_len), file=sys.stderr)
     def calc_user_sim(self):
         ''' calculate user similarity matrix '''
         # build inverse table for item-users
