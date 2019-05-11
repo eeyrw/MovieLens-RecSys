@@ -20,7 +20,6 @@ class UserBasedCF(object):
         self.n_rec_movie = 10
 
         self.user_sim_mat = {}
-        self.movie_popular = {}
         self.movie_count = 0
 
         print ('Similar user number = %d' % self.n_sim_user, file=sys.stderr)
@@ -95,10 +94,6 @@ class UserBasedCF(object):
                 if movie not in movie2users:
                     movie2users[movie] = set()
                 movie2users[movie].add(user)
-                # count item popularity at the same time
-                if movie not in self.movie_popular:
-                    self.movie_popular[movie] = 0
-                self.movie_popular[movie] += 1
         print ('build movie-users inverse table succ', file=sys.stderr)
 
         # save the total movie number, which will be used in evaluation
@@ -166,8 +161,6 @@ class UserBasedCF(object):
         test_count = 0
         # varables for coverage
         all_rec_movies = set()
-        # varables for popularity
-        popular_sum = 0
 
         for i, user in enumerate(self.trainset):
             if i % 500 == 0:
@@ -178,17 +171,14 @@ class UserBasedCF(object):
                 if movie in test_movies:
                     hit += 1
                 all_rec_movies.add(movie)
-                popular_sum += math.log(1 + self.movie_popular[movie])
             rec_count += N
             test_count += len(test_movies)
 
         precision = hit / (1.0 * rec_count)
         recall = hit / (1.0 * test_count)
         coverage = len(all_rec_movies) / (1.0 * self.movie_count)
-        popularity = popular_sum / (1.0 * rec_count)
 
-        print ('precision=%.4f\trecall=%.4f\tcoverage=%.4f\tpopularity=%.4f' %
-               (precision, recall, coverage, popularity), file=sys.stderr)
+        print ('precision=%.4f\trecall=%.4f\tcoverage=%.4f'%(precision, recall, coverage), file=sys.stderr)
 
 
 if __name__ == '__main__':
